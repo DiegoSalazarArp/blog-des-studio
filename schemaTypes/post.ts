@@ -1,6 +1,8 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
+import slugify from 'slugify'
 
 export default defineType({
+
   name: 'post',
   title: 'Post',
   type: 'document',
@@ -17,13 +19,18 @@ export default defineType({
       options: {
         source: 'title',
         maxLength: 96,
+        slugify: input => slugify(input, {
+          lower: true,
+          strict: true, // Elimina caracteres que no son URL-safe
+          remove: /[*+~.()'"!:@]/g // Regex para eliminar caracteres adicionales si es necesario
+        })
       },
     }),
     defineField({
       name: 'author',
       title: 'Author',
       type: 'reference',
-      to: {type: 'author'},
+      to: { type: 'author' },
     }),
     defineField({
       name: 'mainImage',
@@ -37,7 +44,7 @@ export default defineType({
       name: 'categories',
       title: 'Categories',
       type: 'array',
-      of: [{type: 'reference', to: {type: 'category'}}],
+      of: [{ type: 'reference', to: { type: 'category' } }],
     }),
     defineField({
       name: 'publishedAt',
@@ -47,7 +54,13 @@ export default defineType({
     defineField({
       name: 'body',
       title: 'Body',
-      type: 'blockContent',
+      type: 'array',
+      of: [
+        { type: 'block' },
+        { type: 'image' },
+        { type: 'code' }
+      ]
+
     }),
   ],
 
@@ -58,8 +71,8 @@ export default defineType({
       media: 'mainImage',
     },
     prepare(selection) {
-      const {author} = selection
-      return {...selection, subtitle: author && `by ${author}`}
+      const { author } = selection
+      return { ...selection, subtitle: author && `by ${author}` }
     },
   },
 })
